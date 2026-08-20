@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Activity Finder | TaxitWorld</title>
+<meta name="description" content="Search Saudi Business Center (MISA/SBC) commercial activities and ISIC codes. A TaxitWorld tool.">
+<style>
+  :root{
+    --navy:#1A2B6B;
+    --navy-dark:#101c4a;
+    --gold:#F5C518;
+    --bg:#f5f6fa;
+    --card:#ffffff;
+    --text:#1f2430;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  header{
+    background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+    color:#fff;
+    padding:22px 20px 26px;
+  }
+  .header-inner{
+    max-width:960px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .logo-badge{
+    width:42px;height:42px;border-radius:10px;
+    background:var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:var(--navy);font-size:18px;
+    flex-shrink:0;
+  }
+  .brand-name{font-size:17px;font-weight:700;letter-spacing:.2px;}
+  .brand-sub{font-size:12px;color:#c9d0ef;margin-top:1px;}
+  h1{
+    max-width:960px;margin:18px auto 4px;
+    font-size:22px;font-weight:700;
+    padding:0 20px;
+  }
+  .tagline{
+    max-width:960px;margin:0 auto;padding:0 20px 4px;
+    color:#c9d0ef;font-size:13.5px;
+  }
+  main{max-width:960px;margin:0 auto;padding:18px 20px 60px;}
+
+  .search-wrap{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 1px 3px rgba(16,24,40,.06);
+    margin-top:-18px;
+    position:relative;
+  }
+  .search-row{display:flex;gap:8px;}
+  input[type=text]{
+    flex:1;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    font-size:15px;
+    outline:none;
+  }
+  input[type=text]:focus{border-color:var(--navy);}
+  select{
+    padding:10px 10px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    font-size:13.5px;
+    background:#fff;
+    max-width:150px;
+  }
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;}
+
+  .stats-row{
+    display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;
+  }
+  .chip{
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:999px;
+    background:#eef0fb;
+    color:var(--navy);
+    font-weight:600;
+  }
+
+  .section-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin:22px 0 10px;
+  }
+
+  .result-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:box-shadow .15s, border-color .15s;
+  }
+  .result-card:hover{box-shadow:0 2px 10px rgba(16,24,40,.08);border-color:#c9cff0;}
+  .result-card.active{border-color:var(--navy);box-shadow:0 2px 10px rgba(26,43,107,.15);}
+  .result-top{display:flex;align-items:center;gap:8px;justify-content:space-between;}
+  .code-badge{
+    font-family:ui-monospace,Menlo,monospace;
+    font-size:12.5px;font-weight:700;
+    color:#fff;background:var(--navy);
+    padding:3px 8px;border-radius:6px;
+    flex-shrink:0;
+  }
+  .cat-badge{
+    font-size:11px;color:var(--navy);
+    background:#eef0fb;padding:3px 8px;border-radius:999px;
+    font-weight:600;white-space:nowrap;
+  }
+  .act-name{font-size:14.5px;font-weight:600;margin-top:6px;line-height:1.4;}
+
+  .related-panel{
+    background:#fbfaf3;
+    border:1.5px solid var(--gold);
+    border-radius:14px;
+    padding:16px;
+    margin-top:18px;
+  }
+  .related-panel h3{
+    margin:0 0 4px;font-size:15px;color:var(--navy-dark);
+  }
+  .related-panel .sub{font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+  .related-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;}
+  .related-item{
+    display:flex;gap:8px;align-items:baseline;
+    background:#fff;border:1px solid #eee1a8;
+    border-radius:8px;padding:8px 10px;font-size:13.5px;
+  }
+  .related-item .code{
+    font-family:ui-monospace,Menlo,monospace;font-weight:700;color:var(--navy);
+    flex-shrink:0;font-size:12.5px;
+  }
+
+  .empty{
+    text-align:center;color:var(--muted);
+    padding:36px 10px;font-size:14px;
+  }
+  .categories-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:8px;
+  }
+  .cat-card{
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+  }
+  .cat-card:hover{border-color:var(--navy);}
+  .cat-count{
+    margin-left:auto;font-size:11px;font-weight:700;color:var(--navy);
+    background:#eef0fb;padding:2px 7px;border-radius:999px;
+  }
+  footer{
+    text-align:center;padding:24px 20px 40px;color:var(--muted);font-size:12px;
+  }
+  footer a{color:var(--navy);text-decoration:none;font-weight:600;}
+  .back-link{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:13px;color:var(--navy);font-weight:600;
+    cursor:pointer;margin-bottom:10px;
+  }
+  @media (max-width:520px){
+    select{max-width:120px;}
+    h1{font-size:19px;}
+  }
+
+  /* ---- Add-to-cart button on result cards ---- */
+  .card-actions{display:flex;justify-content:flex-end;margin-top:8px;}
+  .add-btn{
+    font-size:12.5px;font-weight:700;
+    padding:6px 12px;border-radius:8px;
+    border:1.5px solid var(--navy);color:var(--navy);
+    background:#fff;cursor:pointer;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .add-btn:hover{background:#eef0fb;}
+  .add-btn.added{
+    background:var(--navy);color:#fff;border-color:var(--navy);
+  }
+  .related-item{position:relative;padding-right:74px;}
+  .related-item .mini-add{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    font-size:11px;font-weight:700;padding:4px 9px;border-radius:7px;
+    border:1.5px solid var(--navy);color:var(--navy);background:#fff;cursor:pointer;
+  }
+  .related-item .mini-add.added{background:var(--navy);color:#fff;}
+
+  /* ---- Floating cart button ---- */
+  .cart-fab{
+    position:fixed;right:18px;bottom:18px;z-index:60;
+    background:var(--navy);color:#fff;border:none;
+    border-radius:999px;padding:13px 18px;
+    display:flex;align-items:center;gap:8px;
+    font-size:14px;font-weight:700;cursor:pointer;
+    box-shadow:0 6px 18px rgba(26,43,107,.35);
+  }
+  .cart-fab .count{
+    background:var(--gold);color:var(--navy-dark);
+    border-radius:999px;min-width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;padding:0 6px;
+  }
+  .cart-fab[hidden]{display:none;}
+
+  /* ---- Cart overlay + panel ---- */
+  .cart-overlay{
+    position:fixed;inset:0;background:rgba(16,20,40,.5);
+    z-index:70;display:flex;align-items:flex-end;justify-content:center;
+  }
+  .cart-overlay[hidden]{display:none;}
+  .cart-panel{
+    background:#fff;width:100%;max-width:640px;
+    border-radius:18px 18px 0 0;
+    max-height:86vh;display:flex;flex-direction:column;
+    box-shadow:0 -8px 30px rgba(0,0,0,.25);
+  }
+  .cart-header{
+    padding:16px 18px 10px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .cart-header h2{margin:0;font-size:16px;color:var(--navy-dark);}
+  .cart-close{
+    background:none;border:none;font-size:20px;color:var(--muted);
+    cursor:pointer;line-height:1;padding:4px;
+  }
+  .cart-body{overflow-y:auto;padding:12px 18px;flex:1;}
+  .cart-empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:14px;}
+  .cart-entry{
+    border:1px solid var(--border);border-radius:12px;
+    padding:12px 14px;margin-bottom:10px;position:relative;
+  }
+  .cart-entry .remove-btn{
+    position:absolute;top:10px;right:10px;
+    background:none;border:none;color:var(--muted);
+    font-size:18px;cursor:pointer;line-height:1;padding:2px 6px;
+  }
+  .cart-entry .remove-btn:hover{color:#c0392b;}
+  .cart-line{font-size:12.5px;margin-bottom:4px;padding-right:24px;}
+  .cart-line .label{color:var(--muted);font-weight:600;margin-right:4px;}
+  .cart-line .code{
+    font-family:ui-monospace,Menlo,monospace;font-weight:700;color:var(--navy);
+  }
+  .cart-line.sub{font-size:14px;font-weight:600;color:var(--text);margin-top:2px;}
+  .cart-footer{
+    border-top:1px solid var(--border);padding:14px 18px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .phone-row{display:flex;gap:8px;}
+  .phone-row input{
+    flex:1;padding:10px 12px;border-radius:9px;
+    border:1.5px solid var(--border);font-size:14px;outline:none;
+  }
+  .phone-row input:focus{border-color:var(--navy);}
+  .whatsapp-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:#25D366;color:#fff;border:none;border-radius:10px;
+    padding:12px 14px;font-size:14.5px;font-weight:700;cursor:pointer;
+  }
+  .whatsapp-btn:hover{background:#1ebe5a;}
+  .clear-btn{
+    background:none;border:none;color:var(--muted);
+    font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;
+  }
+  .clear-btn:hover{color:#c0392b;}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo-badge">TW</div>
+    <div>
+      <div class="brand-name">TaxitWorld Business Consultancy</div>
+      <div class="brand-sub">Al Khobar · Riyadh · Jeddah · Dammam</div>
+    </div>
+  </div>
+  <h1>Business Activity Finder</h1>
+  <div class="tagline">Search official Saudi Business Center (SBC / MISA) commercial activities and ISIC codes used for company registration.</div>
+</header>
+
+<main>
+  <div class="search-wrap">
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="Search activity name or ISIC code (e.g. 'restaurant', 'consultancy', '6201')" autocomplete="off">
+      <select id="categoryFilter"><option value="">All categories</option></select>
+    </div>
+    <div class="hint">Smart search understands business terms &mdash; try "restaurant", "car rental", "cleaning company". Tap any result to see all related activities.</div>
+    <div class="stats-row" id="statsRow"></div>
+  </div>
+
+  <div id="content"></div>
+
+  <footer>
+    Built for <a href="https://www.taxitworld.com" target="_blank">TaxitWorld</a> clients &middot; Data source: Saudi Business Center (companies2.saudibusiness.gov.sa)
+  </footer>
+</main>
+
+<button class="cart-fab" id="cartFab" onclick="openCart()" hidden>
+  🛒 Cart <span class="count" id="cartCount">0</span>
+</button>
+
+<div class="cart-overlay" id="cartOverlay" hidden onclick="if(event.target===this) closeCart()">
+  <div class="cart-panel">
+    <div class="cart-header">
+      <h2>Selected Activities</h2>
+      <button class="cart-close" onclick="closeCart()">&times;</button>
+    </div>
+    <div class="cart-body" id="cartBody"></div>
+    <div class="cart-footer" id="cartFooter"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   INTELLIGENT SEARCH ENGINE
+   TF-IDF + cosine similarity + business-term synonym expansion.
+   Runs entirely client-side — no API, no backend, no build step.
+   ============================================================ */
+
+const STOPWORDS = new Set(['a','an','the','of','and','or','in','on','for','with','to','not','elsewhere',
+  'classified','nec','into','from','by','at','their','its','including','include','via','except',
+  'unspecified','position','another','other','etc']);
+
+const SYNONYMS = {
+  restaurant:['food','catering','beverage','dine'], cafe:['beverage','food','restaurant'], coffee:['beverage','food'],
+  it:['computer','software','program','information'], software:['computer','program','information'], computer:['software','program'],
+  clean:['janitorial'], cleaning:['janitorial'], logistics:['transport','storage','freight','cargo'],
+  transport:['freight','cargo','logistics','storage'], transportation:['freight','cargo','logistics','storage'],
+  consultancy:['consult','advisory','management'], consulting:['consultancy','advisory','management'], consult:['consultancy','advisory','management'],
+  trading:['wholesale','retail','trade'], trade:['wholesale','retail','trading'], import:['wholesale','trade','retail'], export:['wholesale','trade'],
+  salon:['hairdressing','beauty','cosmetic'], beauty:['hairdressing','salon','cosmetic'], clinic:['medical','health','dental'], hospital:['medical','health'],
+  gym:['sport','fitness','recreation'], fitness:['sport','gym','recreation'], school:['education','training'], training:['education','school'],
+  realestate:['property'], property:['realestate','real','estate'], construction:['building','contracting'], contracting:['construction','building'],
+  manufacturing:['manufacture','factory'], factory:['manufacturing','manufacture'],
+  car:['motor','vehicle','automotive'], cars:['motor','vehicle','automotive'], vehicle:['motor','car','automotive'],
+  delivery:['courier','transport'], courier:['delivery','transport'], marketing:['advertising','market'], advertising:['marketing'],
+  legal:['law','lawyer'], law:['legal','lawyer'], accounting:['financial','audit','bookkeeping'], audit:['accounting','financial'],
+  recruitment:['employment','placement','staffing','human','resources'], staffing:['recruitment','employment'],
+  security:['guard','protection'], travel:['tourism','tour'], tourism:['travel','tour'], photography:['photo','camera'],
+  ecommerce:['retail','wholesale','online'], online:['ecommerce','internet'],
+  rent:['renting','leasing','hire'], rental:['renting','leasing','hire'], hire:['renting','leasing','rental'], leasing:['renting','rental','hire'],
+  hr:['human','resources','employment','staffing','personnel'], employment:['recruitment','placement','staffing','human','resources'],
+  laundry:['washing','dry','clean'], grocery:['retail','food','store'], supermarket:['retail','food','store'], bakery:['bakery','food','bread'],
+  pharmacy:['pharmaceutical','medical','retail'], spa:['beauty','hairdressing','massage'], daycare:['education','social','child'],
+  nursery:['education','social','child'], gym:['sport','fitness','recreation'],
+
+  /* --- Gulf / Malayali-expat client business terms ---
+     NOTE: keys are matched against the RAW (unstemmed) query word, so use
+     natural word forms here — see expandQuery(), which looks up synonyms
+     BEFORE stemming to avoid the stemmer mangling keys like "typing". */
+  exchange:['currency','money','financial','remittance','fund'], remittance:['exchange','money','currency','fund','financial'],
+  currency:['exchange','money','financial'], transfer:['exchange','remittance','financial'],
+  gold:['jewelry','jewellery'], jewellery:['jewelry','gold'], jewelry:['jewellery','gold'],
+  saree:['textile','clothing','garment'], garment:['textile','clothing','wear','tailor'], garments:['textile','clothing','wear','tailor'],
+  abaya:['garment','textile','clothing','wear'],
+  tailor:['garment','clothing','wear','embroidery'], tailoring:['garment','clothing','wear','embroidery'],
+  embroidery:['garment','textile','tailor'],
+  furniture:['furnishing','household'],
+  aluminium:['glass','metal','fabrication'], aluminum:['glass','metal','fabrication'],
+  fabrication:['metal','aluminium','weld','construction'], welding:['metal','fabrication'], weld:['metal','fabrication'],
+  paint:['hardware','glass'],
+  pest:['pesticide','cleaning'], pesticide:['pest','cleaning'],
+  tyre:['tire','rubber','vehicle','motor'], tire:['tyre','rubber','vehicle','motor'],
+  wash:['washing','clean','laundry'],
+  garage:['repair','vehicle','motor','workshop'], workshop:['repair','maintenance'],
+  manpower:['employment','staffing','recruitment','human','resources','placement'],
+  supply:['employment','provide'],
+  labour:['employment','staffing','human','resources'], labor:['employment','staffing','human','resources'],
+  visa:['employment','placement','human','resources'],
+  cargo:['freight','courier','shipping','transport','logistics'], shipping:['cargo','freight','courier','transport'],
+  parcel:['courier','cargo','freight','delivery'],
+  clearing:['courier','office','support','document'], clearance:['courier','cargo','freight','customs'],
+  customs:['cargo','clearance','freight'],
+  documents:['office','support','photocopy','document'], documentation:['office','support','photocopy','document'],
+  attestation:['office','support','document'],
+  typing:['photocopy','document','office','support'], typist:['photocopy','document','office','support'],
+  center:['office','support'], centre:['office','support'],
+  photocopy:['document','office','support','typing'],
+  press:['printing'],
+  signboard:['advertising','design','printing'], banner:['advertising','printing','design'],
+  event:['catering','convention'], wedding:['event','catering','convention'],
+  photographer:['photography','photo','camera'], videography:['photography','photo','camera'],
+  tea:['beverage','food','restaurant','cafe'], juice:['beverage','food'],
+  sweets:['bakery','food'], icecream:['food','bakery'],
+  cold:['storage'], storage:['store'],
+  hypermarket:['retail','food','store','supermarket'],
+  scrap:['waste','recycle','recycling'], recycling:['waste','scrap'], recycle:['waste','scrap'],
+  used:['sale','retail'],
+  spareparts:['motor','vehicle','part'], parts:['motor','vehicle','part'],
+  driving:['education','training'],
+  tuition:['education','training','coaching'], coaching:['education','training','tuition'],
+  quran:['education','training','islamic'], islamic:['education','religious'],
+  elderly:['social','residential','care'], nursing:['social','residential','care','medical'],
+  interior:['design','decoration'], decoration:['design','interior'],
+  mobile:['electronics','telecommunications','communication'], electronics:['retail','repair','telecommunications'],
+  stationery:['office','retail','paper'], gift:['retail','gift'],
+  hardware:['retail','building'], material:['construction','retail'],
+  cement:['wholesale','construction','building'],
+  fruit:['wholesale','retail','food','agricultural'], vegetable:['food','agricultural','retail'],
+  farm:['agricultural','poultry'], seafood:['fish','wholesale'],
+  maintenance:['repair','cleaning','building'],
+  plumbing:['installation','maintenance','electrical'], plumber:['installation','maintenance','electrical'],
+  electrical:['installation','electric'], electric:['installation','electrical'],
+  condition:['installation','maintenance','plumbing'], conditioning:['installation','maintenance','plumbing'],
+  barber:['hairdressing','beauty','salon'],
+  perfume:['cosmetic','retail'], cosmetics:['perfume','retail'],
+  general:['wholesale','retail'],
+};
+
+function stem(word){
+  if(word.length > 5 && word.endsWith('ies')) return word.slice(0,-3)+'y';
+  if(word.length > 5 && word.endsWith('ing')) return word.slice(0,-3);
+  if(word.length > 4 && word.endsWith('es') && !word.endsWith('ses')) return word.slice(0,-2);
+  if(word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) return word.slice(0,-1);
+  return word;
+}
+function tokenize(text){
+  return (text.toLowerCase().match(/[a-z0-9]+/g) || [])
+    .filter(t => t.length > 1 && !STOPWORDS.has(t)).map(stem);
+}
+
+let SEARCH_ENGINE = null;
+
+function buildSearchEngine(detailedActivities, purposesByCode){
+  // Corpus = the 6-digit detailed activities (the real registrable codes).
+  // Each doc's text combines its own name with its parent purpose's name for
+  // better recall on short/terse detailed-activity names.
+  const byCode = {};
+  detailedActivities.forEach(d => byCode[d.code] = d);
+  const docs = detailedActivities.map(d => {
+    const parent = purposesByCode[d.parentPurposeCode];
+    const text = parent ? `${d.name} ${parent.name}` : d.name;
+    return { code: d.code, tokens: tokenize(text) };
+  });
+  const df = {};
+  docs.forEach(d => { new Set(d.tokens).forEach(t => df[t] = (df[t]||0) + 1); });
+  const N = docs.length;
+  const idf = t => Math.log((N + 1) / ((df[t]||0) + 1)) + 1;
+
+  function vectorize(tokens){
+    const counts = {};
+    tokens.forEach(t => counts[t] = (counts[t]||0) + 1);
+    const max = Math.max(...Object.values(counts), 1);
+    const out = {};
+    Object.keys(counts).forEach(t => out[t] = (counts[t]/max) * idf(t));
+    return out;
+  }
+  docs.forEach(d => d.vec = vectorize(d.tokens));
+
+  function cosine(v1, v2){
+    let dot=0, n1=0, n2=0;
+    for(const k in v1){ n1 += v1[k]*v1[k]; if(v2[k]) dot += v1[k]*v2[k]; }
+    for(const k in v2){ n2 += v2[k]*v2[k]; }
+    if(!n1 || !n2) return 0;
+    return dot / (Math.sqrt(n1) * Math.sqrt(n2));
+  }
+
+  function synonymKeyFor(word){
+    if(SYNONYMS[word]) return word;
+    // light singularization for lookup only (keeps stemmer out of this step,
+    // since aggressive stemming would mangle dictionary keys like "typing")
+    if(word.length > 3 && word.endsWith('s') && !word.endsWith('ss')){
+      const sing = word.slice(0, -1);
+      if(SYNONYMS[sing]) return sing;
+    }
+    return null;
+  }
+
+  function expandQuery(q){
+    // Synonym lookup happens on RAW words (before stemming) so dictionary
+    // keys like "typing" or "trading" aren't broken by suffix-stripping.
+    const rawWords = (q.toLowerCase().match(/[a-z0-9]+/g) || [])
+      .filter(w => w.length > 1 && !STOPWORDS.has(w));
+    let expanded = [...rawWords];
+    rawWords.forEach(w => {
+      const key = synonymKeyFor(w);
+      if(key) expanded = expanded.concat(SYNONYMS[key]);
+    });
+    return expanded.map(stem);
+  }
+
+  return {
+    // Ranked smart search across all detailed activities for a free-text / code query
+    search(query, limit=40){
+      const qLower = query.trim().toLowerCase();
+      if(!qLower) return [];
+      const qVec = vectorize(expandQuery(query));
+      const scored = docs.map(d => {
+        let score = cosine(qVec, d.vec);
+        // boost exact code match and exact substring match so literal searches always surface
+        if(d.code === qLower) score += 1;
+        else if(d.code.includes(qLower)) score += 0.5;
+        if(byCode[d.code].name.toLowerCase().includes(qLower)) score += 0.35;
+        return { code: d.code, score };
+      });
+      return scored.filter(s => s.score > 0.02).sort((a,b) => b.score - a.score).slice(0, limit);
+    },
+    // Ranked "related activities" for a given activity code, across the whole dataset
+    related(code, limit=14){
+      const target = docs.find(d => d.code === code);
+      if(!target) return [];
+      return docs
+        .filter(d => d.code !== code)
+        .map(d => ({ code: d.code, score: cosine(target.vec, d.vec) }))
+        .filter(s => s.score > 0.03)
+        .sort((a,b) => b.score - a.score)
+        .slice(0, limit);
+    }
+  };
+}
+
+/* ============================================================
+   APP
+   ============================================================ */
+
+let DATA = { mainActivities: [], purposes: [], detailedActivities: [] };
+let PURPOSE_BY_CODE = {};
+let DETAILED_BY_CODE = {};
+let activeCode = null;
+let cart = [];
+let currentMainCode = null; // which category we're drilled into (for back-links)
+
+const searchInput = document.getElementById('searchInput');
+const categoryFilter = document.getElementById('categoryFilter');
+const content = document.getElementById('content');
+const statsRow = document.getElementById('statsRow');
+
+loadCart();
+updateCartFab();
+
+fetch('activities_data.json')
+  .then(r => r.json())
+  .then(data => {
+    DATA = data;
+    PURPOSE_BY_CODE = {};
+    DATA.purposes.forEach(p => PURPOSE_BY_CODE[p.code] = p);
+    DETAILED_BY_CODE = {};
+    DATA.detailedActivities.forEach(d => DETAILED_BY_CODE[d.code] = d);
+    SEARCH_ENGINE = buildSearchEngine(DATA.detailedActivities, PURPOSE_BY_CODE);
+    populateCategoryFilter();
+    renderStats();
+    renderCategoryBrowser();
+  })
+  .catch(err => {
+    content.innerHTML = '<div class="empty">Could not load activity data. Please refresh.</div>';
+  });
+
+function populateCategoryFilter(){
+  const opts = DATA.mainActivities
+    .slice()
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .map(m => `<option value="${m.code}">${escapeHtml(m.name)}</option>`).join('');
+  categoryFilter.insertAdjacentHTML('beforeend', opts);
+}
+
+function renderStats(){
+  statsRow.innerHTML = `
+    <span class="chip">${DATA.detailedActivities.length} activities</span>
+    <span class="chip">${DATA.purposes.length} sub-activities</span>
+    <span class="chip">${DATA.mainActivities.length} categories</span>
+  `;
+}
+
+function mainName(code){
+  const m = DATA.mainActivities.find(x => x.code === code);
+  return m ? m.name : '';
+}
+function purposeName(code){
+  const p = PURPOSE_BY_CODE[code];
+  return p ? p.name : '';
+}
+
+/* ---- Level 1: Main Activity categories ---- */
+function renderCategoryBrowser(){
+  currentMainCode = null;
+  const counts = {};
+  DATA.detailedActivities.forEach(d => { counts[d.mainActivityCode] = (counts[d.mainActivityCode]||0)+1; });
+  const cards = DATA.mainActivities
+    .slice()
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .map(m => `
+      <div class="cat-card" onclick="browseCategory('${m.code}')">
+        ${m.code} &middot; ${escapeHtml(m.name)}
+        <span class="cat-count">${counts[m.code]||0}</span>
+      </div>
+    `).join('');
+  content.innerHTML = `
+    <div class="section-title">Browse by main activity</div>
+    <div class="categories-grid">${cards}</div>
+  `;
+}
+
+/* ---- Level 2: Sub Activities (purposes) inside a Main Activity ---- */
+function browseCategory(code){
+  currentMainCode = code;
+  activeCode = null;
+  categoryFilter.value = code;
+  searchInput.value = '';
+
+  const counts = {};
+  DATA.detailedActivities.forEach(d => { if(d.mainActivityCode === code) counts[d.parentPurposeCode] = (counts[d.parentPurposeCode]||0)+1; });
+  const subActivities = DATA.purposes
+    .filter(p => p.mainActivityCode === code && counts[p.code])
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  content.innerHTML = `
+    <div class="back-link" onclick="goBack()">&larr; Back to categories</div>
+    <div class="section-title">${code} &middot; ${escapeHtml(mainName(code))} &mdash; ${subActivities.length} sub-activities</div>
+    <div class="categories-grid">
+      ${subActivities.map(p => `
+        <div class="cat-card" onclick="browseSubActivity('${p.code}')">
+          ${p.code} &middot; ${escapeHtml(p.name)}
+          <span class="cat-count">${counts[p.code]}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+/* ---- Level 3: Detailed Activities (the real 6-digit registrable codes) ---- */
+function browseSubActivity(purposeCode){
+  activeCode = null;
+  searchInput.value = '';
+  const purpose = PURPOSE_BY_CODE[purposeCode];
+  const items = DATA.detailedActivities
+    .filter(d => d.parentPurposeCode === purposeCode)
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  content.innerHTML = `
+    <div class="back-link" onclick="browseCategory('${purpose.mainActivityCode}')">&larr; Back to ${escapeHtml(mainName(purpose.mainActivityCode))}</div>
+    <div class="section-title">${purposeCode} &middot; ${escapeHtml(purpose.name)} &mdash; ${items.length} activities</div>
+    ${items.map(renderResultCard).join('')}
+  `;
+}
+
+function goBack(){
+  categoryFilter.value = '';
+  searchInput.value = '';
+  renderCategoryBrowser();
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderResultCard(d){
+  const inCart = isInCart(d.code);
+  return `
+    <div class="result-card ${d.code===activeCode?'active':''}" data-code="${d.code}">
+      <div onclick="selectActivity('${d.code}')" style="cursor:pointer">
+        <div class="result-top">
+          <span class="code-badge">${d.code}</span>
+          <span class="cat-badge">${d.mainActivityCode} &middot; ${escapeHtml(mainName(d.mainActivityCode))}</span>
+        </div>
+        <div class="act-name">${escapeHtml(d.name)}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">
+          Sub-activity: ${d.parentPurposeCode} &ndash; ${escapeHtml(purposeName(d.parentPurposeCode))}
+          ${d.licenseRequired ? '<span style="color:#b45309;font-weight:700;"> &middot; Requires additional license</span>' : ''}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="add-btn ${inCart?'added':''}" onclick="event.stopPropagation(); toggleCartItem('${d.code}')">
+          ${inCart ? '&#10003; Added' : '+ Add to cart'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function doSearch(){
+  const qRaw = searchInput.value.trim();
+  const catFilter = categoryFilter.value;
+  activeCode = null;
+
+  if(!qRaw && !catFilter){
+    renderCategoryBrowser();
+    return;
+  }
+
+  let results;
+  if(qRaw && SEARCH_ENGINE){
+    const ranked = SEARCH_ENGINE.search(qRaw, 60);
+    results = ranked
+      .map(r => DETAILED_BY_CODE[r.code])
+      .filter(d => d && (!catFilter || d.mainActivityCode === catFilter));
+  } else {
+    results = DATA.detailedActivities.filter(d => !catFilter || d.mainActivityCode === catFilter);
+  }
+
+  if(results.length === 0){
+    content.innerHTML = `<div class="empty">No activities found${qRaw ? ` for "${escapeHtml(qRaw)}"` : ''}. Try a different keyword or ISIC code.</div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="section-title">${results.length} result${results.length===1?'':'s'} found ${qRaw ? '&middot; ranked by relevance' : ''}</div>
+    ${results.map(renderResultCard).join('')}
+  `;
+}
+
+function selectActivity(code){
+  activeCode = code;
+  const activity = DETAILED_BY_CODE[code];
+  if(!activity || !SEARCH_ENGINE) return;
+
+  // Smart related: ranked by semantic similarity across the WHOLE dataset,
+  // not limited to the same category or ISIC division.
+  const ranked = SEARCH_ENGINE.related(code, 14)
+    .map(r => ({ ...DETAILED_BY_CODE[r.code], score: r.score }))
+    .filter(Boolean);
+
+  // re-render current list with active state
+  const clicked = Array.from(document.querySelectorAll('.result-card'))
+    .find(c => c.querySelector('.code-badge').textContent.trim() === code);
+  document.querySelectorAll('.result-card').forEach(c => c.classList.remove('active'));
+  if(clicked) clicked.classList.add('active');
+
+  let relatedHtml = '';
+  if(ranked.length){
+    relatedHtml = `
+      <div class="related-panel">
+        <h3>Related activities</h3>
+        <div class="sub">Businesses closely related to <strong>${code} &ndash; ${escapeHtml(activity.name)}</strong>, ranked by relevance across all categories</div>
+        <div class="related-list">
+          ${ranked.map(r => `
+            <div class="related-item">
+              <div onclick="selectActivity('${r.code}')" style="cursor:pointer;display:flex;gap:8px;align-items:baseline;">
+                <span class="code">${r.code}</span>
+                <span style="flex:1">${escapeHtml(r.name)}</span>
+              </div>
+              <button class="mini-add ${isInCart(r.code)?'added':''}" data-code="${r.code}" onclick="toggleCartItem('${r.code}')">${isInCart(r.code) ? '&#10003;' : '+'}</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    relatedHtml = `<div class="related-panel"><div class="sub">No closely related activities found for this one.</div></div>`;
+  }
+
+  // Insert / replace the related panel after the clicked card
+  let panelEl = document.getElementById('relatedPanelHolder');
+  if(!panelEl){
+    panelEl = document.createElement('div');
+    panelEl.id = 'relatedPanelHolder';
+    content.appendChild(panelEl);
+  }
+  panelEl.innerHTML = relatedHtml;
+  panelEl.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ============================================================
+   CART — select activities, review with main+sub activity shown,
+   send the list to a client via WhatsApp.
+   ============================================================ */
+
+function loadCart(){
+  try { cart = JSON.parse(localStorage.getItem('tw_activity_cart') || '[]'); }
+  catch(e){ cart = []; }
+}
+function saveCart(){
+  try { localStorage.setItem('tw_activity_cart', JSON.stringify(cart)); }
+  catch(e){ /* storage unavailable — cart still works for this session */ }
+}
+function isInCart(code){ return cart.includes(code); }
+
+function toggleCartItem(code){
+  const idx = cart.indexOf(code);
+  if(idx === -1) cart.push(code); else cart.splice(idx, 1);
+  saveCart();
+  updateCartFab();
+  refreshCartButtons();
+  const overlay = document.getElementById('cartOverlay');
+  if(overlay && !overlay.hidden) renderCartPanel();
+}
+
+function refreshCartButtons(){
+  document.querySelectorAll('.result-card').forEach(card => {
+    const code = card.getAttribute('data-code');
+    const btn = card.querySelector('.add-btn');
+    if(!btn || !code) return;
+    const added = isInCart(code);
+    btn.classList.toggle('added', added);
+    btn.innerHTML = added ? '&#10003; Added' : '+ Add to cart';
+  });
+  document.querySelectorAll('.mini-add').forEach(btn => {
+    const code = btn.getAttribute('data-code');
+    if(!code) return;
+    const added = isInCart(code);
+    btn.classList.toggle('added', added);
+    btn.innerHTML = added ? '&#10003;' : '+';
+  });
+}
+
+function updateCartFab(){
+  const fab = document.getElementById('cartFab');
+  const countEl = document.getElementById('cartCount');
+  if(!fab || !countEl) return;
+  fab.hidden = cart.length === 0;
+  countEl.textContent = cart.length;
+}
+
+function openCart(){
+  renderCartPanel();
+  document.getElementById('cartOverlay').hidden = false;
+}
+function closeCart(){
+  document.getElementById('cartOverlay').hidden = true;
+}
+function removeFromCart(code){
+  toggleCartItem(code);
+  renderCartPanel();
+}
+function clearCart(){
+  cart = [];
+  saveCart();
+  updateCartFab();
+  refreshCartButtons();
+  renderCartPanel();
+}
+
+function renderCartPanel(){
+  const body = document.getElementById('cartBody');
+  const footer = document.getElementById('cartFooter');
+  if(!body || !footer) return;
+
+  const items = cart.map(code => DETAILED_BY_CODE[code]).filter(Boolean);
+
+  if(items.length === 0){
+    body.innerHTML = `<div class="cart-empty">No activities selected yet.<br>Search or browse, then tap "+ Add to cart".</div>`;
+    footer.innerHTML = '';
+    return;
+  }
+
+  body.innerHTML = items.map(d => `
+    <div class="cart-entry">
+      <button class="remove-btn" onclick="removeFromCart('${d.code}')" title="Remove">&times;</button>
+      <div class="cart-line">
+        <span class="label">Main Activity</span>
+        <span class="code">${d.mainActivityCode}</span> &ndash; ${escapeHtml(mainName(d.mainActivityCode))}
+      </div>
+      <div class="cart-line">
+        <span class="label">Sub Activity</span>
+        <span class="code">${d.parentPurposeCode}</span> &ndash; ${escapeHtml(purposeName(d.parentPurposeCode))}
+      </div>
+      <div class="cart-line sub"><span class="code">${d.code}</span> &ndash; ${escapeHtml(d.name)}</div>
+      ${d.licenseRequired ? '<div class="cart-line" style="color:#b45309;font-weight:700;">&#9888; Requires additional license</div>' : ''}
+    </div>
+  `).join('');
+
+  footer.innerHTML = `
+    <div class="phone-row">
+      <input type="tel" id="waPhone" placeholder="Client WhatsApp number (optional), e.g. 9665XXXXXXXX" inputmode="tel">
+    </div>
+    <button class="whatsapp-btn" onclick="sendWhatsApp()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.198.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.05 22c-1.688 0-3.343-.435-4.808-1.263L2 22l1.322-4.9A9.94 9.94 0 0 1 2.05 12C2.05 6.477 6.527 2 12.05 2s10 4.477 10 10-4.477 10-10 10zm0-18.5c-4.687 0-8.5 3.813-8.5 8.5 0 1.85.594 3.564 1.6 4.958l-.94 3.48 3.583-.94a8.46 8.46 0 0 0 4.257 1.152c4.687 0 8.5-3.813 8.5-8.5s-3.813-8.5-8.5-8.5z"/></svg>
+      Send via WhatsApp
+    </button>
+    <button class="clear-btn" onclick="clearCart()">Clear all (${items.length})</button>
+  `;
+}
+
+function buildWhatsAppMessage(){
+  const items = cart.map(code => DETAILED_BY_CODE[code]).filter(Boolean);
+  let msg = `*Selected Business Activities*\n_TaxitWorld Business Consultancy_\n\n`;
+  items.forEach((d, i) => {
+    msg += `${i+1}. Main Activity: ${d.mainActivityCode} - ${mainName(d.mainActivityCode)}\n`;
+    msg += `   Sub Activity: ${d.parentPurposeCode} - ${purposeName(d.parentPurposeCode)}\n`;
+    msg += `   Activity: *${d.code}* - ${d.name}\n`;
+    if(d.licenseRequired) msg += `   ⚠ Requires additional license\n`;
+    msg += `\n`;
+  });
+  msg += `Total: ${items.length} activities selected\nwww.taxitworld.com`;
+  return msg;
+}
+
+function sendWhatsApp(){
+  if(cart.length === 0) return;
+  const msg = buildWhatsAppMessage();
+  const phoneInput = document.getElementById('waPhone');
+  const phone = phoneInput ? phoneInput.value.replace(/[^0-9]/g, '') : '';
+  const encoded = encodeURIComponent(msg);
+  const url = phone
+    ? `https://wa.me/${phone}?text=${encoded}`
+    : `https://api.whatsapp.com/send?text=${encoded}`;
+  window.open(url, '_blank');
+}
+
+let debounceTimer;
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(doSearch, 150);
+});
+categoryFilter.addEventListener('change', doSearch);
+</script>
+</body>
+</html>
