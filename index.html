@@ -675,7 +675,8 @@ function renderResultCard(d){
         <div class="act-name">${escapeHtml(d.name)}</div>
         <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">
           Sub-activity: ${d.parentPurposeCode} &ndash; ${escapeHtml(purposeName(d.parentPurposeCode))}
-          ${d.licenseRequired ? '<span style="color:#b45309;font-weight:700;"> &middot; Requires additional license</span>' : ''}
+          ${d.licenseRequired === true ? '<span style="color:#b45309;font-weight:700;"> &middot; Requires additional license</span>' : ''}
+          ${d.licenseRequired === null ? '<span style="color:#6b7280;"> &middot; License status not yet verified</span>' : ''}
         </div>
       </div>
       <div class="card-actions">
@@ -864,7 +865,8 @@ function renderCartPanel(){
         <span class="code">${d.parentPurposeCode}</span> &ndash; ${escapeHtml(purposeName(d.parentPurposeCode))}
       </div>
       <div class="cart-line sub"><span class="code">${d.code}</span> &ndash; ${escapeHtml(d.name)}</div>
-      ${d.licenseRequired ? '<div class="cart-line" style="color:#b45309;font-weight:700;">&#9888; Requires additional license</div>' : ''}
+      ${d.licenseRequired === true ? '<div class="cart-line" style="color:#b45309;font-weight:700;">&#9888; Requires additional license</div>' : ''}
+      ${d.licenseRequired === null ? '<div class="cart-line" style="color:#6b7280;">License status not yet verified &mdash; confirm with SBC</div>' : ''}
     </div>
   `).join('');
 
@@ -887,7 +889,8 @@ function buildWhatsAppMessage(){
     msg += `${i+1}. Main Activity: ${d.mainActivityCode} - ${mainName(d.mainActivityCode)}\n`;
     msg += `   Sub Activity: ${d.parentPurposeCode} - ${purposeName(d.parentPurposeCode)}\n`;
     msg += `   Activity: *${d.code}* - ${d.name}\n`;
-    if(d.licenseRequired) msg += `   ⚠ Requires additional license\n`;
+    if(d.licenseRequired === true) msg += `   ⚠ Requires additional license\n`;
+    if(d.licenseRequired === null) msg += `   (License status not yet verified — confirm with SBC)\n`;
     msg += `\n`;
   });
   msg += `Total: ${items.length} activities selected\nwww.taxitworld.com`;

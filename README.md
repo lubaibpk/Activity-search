@@ -3,6 +3,25 @@
 A static, Vercel-only web app for searching Saudi Business Center (SBC/MISA)
 commercial activities and ISIC codes. Built for TaxitWorld to share with clients.
 
+## Data updated September 2026
+Refreshed from a newer SBC source snapshot (previous data was ~1 year old).
+Changes found and applied:
+- **87 new activities** added (e.g. "Provision of Data Center Services",
+  "IT Services Management", "Veterinary consulting activities")
+- **383 activities removed** — no longer offered by SBC, dropped from search
+  and browse so nothing outdated surfaces
+- **2 new sub-activities** added
+- Main→Sub→Activity linkage was rebuilt by reading the actual page structure
+  (not guessed from code prefixes), so it's more accurate than before
+- **License-required flags**: carried forward for the 2,286 activities that
+  existed in both the old and new data. The 87 brand-new activities show
+  "License status not yet verified" instead of a guess, since the current
+  SBC page no longer exposes that flag in a way this tool can read directly
+  — worth a quick manual check with SBC for any of those before advising a
+  client
+- 41 activities had blank names in SBC's own source (same known issue as
+  before); each falls back to its parent sub-activity's name
+
 ## The real hierarchy (fixed — this was a major gap in earlier versions)
 The Saudi Business Center form actually has **three levels**, not two:
 1. **Main Activity** — 19 broad categories (e.g. "09 – Accommodation and food
